@@ -1,7 +1,7 @@
 +++
 title = "Resume"
 menu = "main"
-weight = 4
+weight = 3
 url = "resume.pdf"
 [build]
 publishResources = false

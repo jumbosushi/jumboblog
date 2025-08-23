@@ -1,10 +1,10 @@
 # Basic metadata configuration
 baseURL = 'https://yatsushi.com/'
 languageCode = 'en-us'
-title = "Atsushi Yamamoto"
+title = "yatsushi"
 theme = "hugo-bearblog"
 author = "Atsushi Yamamoto"
-copyright = "Copyright © 2020, Jane Doe."
+copyright = "Copyright © 2025, Atsushi Yamamoto."
 
 # Generate a nice robots.txt for SEO
 enableRobotsTXT = true
@@ -13,8 +13,8 @@ enableRobotsTXT = true
 disableKinds = ["taxonomy"]
 ignoreErrors = ["error-disable-taxonomy"]
 [permalinks]
-blog = "/:slug/"
-tags = "/blog/:slug"
+blog = "/blog/:slug"
+tags = "/tag/:slug"
 
 
 [params]
