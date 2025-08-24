@@ -1,7 +1,8 @@
 +++
 title = "About"
 menu = "main"
-weight = 3
+weight = 2
+rss = false
 +++
 
 Index of blog posts:

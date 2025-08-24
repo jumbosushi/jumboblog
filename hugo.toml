@@ -16,10 +16,9 @@ ignoreErrors = ["error-disable-taxonomy"]
 blog = "/blog/:slug"
 tags = "/tag/:slug"
 
-
 [params]
 # The "description" of your website. This is used in the meta data of your generated html.
-description = "Hugo + Bear = :heart:"
+description = "Atsushi Yamamoto's website"
 
 # The path to your "favicon". This should be a square (at least 32px x 32px) png-file.
 # Hint: It's good practise to also put a "favicon.ico"-file into your "static"-folder.
@@ -55,3 +54,6 @@ style = 'friendly'
 lineNos = true
 lineNumbersInTable = false
 codeFences = true
+
+[outputs]
+home = ["html", "rss"]
