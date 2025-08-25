@@ -1,5 +1,5 @@
 +++
-title = "Resume"
+title = "resume"
 menu = "main"
 weight = 4
 url = "resume.pdf"
