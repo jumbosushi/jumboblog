@@ -56,4 +56,6 @@ lineNumbersInTable = false
 codeFences = true
 
 [outputs]
-home = ["html", "rss"]
+# Only make RSS feed for blog posts
+home = ["html"]
+section = ["html", "rss"]
