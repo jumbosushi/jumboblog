@@ -1,7 +1,3 @@
-{{/*
-    Slightly altered version of the Hugo's defualt RSS feed
-    https://github.com/gohugoio/hugo/blob/master/tpl/tplimpl/embedded/templates/rss.xml
-*/}}
 {{- $authorEmail := "" }}
 {{- with site.Params.author }}
   {{- if reflect.IsMap . }}
