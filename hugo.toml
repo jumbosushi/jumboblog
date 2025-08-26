@@ -50,9 +50,8 @@ hideMadeWithLine = true
 # https://gohugo.io/configuration/markup/#highlight
 [markup]
 [markup.highlight]
-style = 'friendly'
-lineNos = true
-lineNumbersInTable = false
+# github-dark have issues with chroma layer
+style = "dracula"
 codeFences = true
 
 [outputs]
