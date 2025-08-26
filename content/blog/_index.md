@@ -1,7 +1,10 @@
 +++
-title = "blog"
-menu = "main"
-weight = 1
+title = "yatsushi"
 url = "/"
 aliases = ["/blog/"]
+
+[menu]
+  [menu.main]
+    name = "blog"
+    weight = 1
 +++
