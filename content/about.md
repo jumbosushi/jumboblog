@@ -20,3 +20,5 @@ Some of things I enjoy are: running 🏃‍♂️, golf 🏌️, chess ♟️, a
 - [Twitter](https://twitter.com/jumbosushi)
 - [Bluesky](https://bsky.app/profile/jumbosushi.bsky.social)
 - [Linkedin](https://www.linkedin.com/in/yatsushi/)
+
+This site uses the excellent [Hugo ʕ•ᴥ•ʔ Bear](https://github.com/janraasch/hugo-bearblog) theme.
