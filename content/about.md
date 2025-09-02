@@ -6,9 +6,11 @@ title = "About"
 weight = 2
 +++
 
-Hi there 👋
+Hi there, I'm Atsushi 👋
 
-Atsushi here. I'm a Software Engineer based in San Francisco, originally from Kyoto. I'm currently employed at [Retool](https://retool.com/) working on DevX toolings.
+I'm a Software Engineer based in San Francisco 🌁, originally from Kyoto ⛩️.
+
+I currently work at [Retool](https://retool.com/) tinkering on DevX toolings.
 
 I mainly write about systems I'm interested in or things I got stuck on recently.
 
@@ -21,4 +23,4 @@ Some of things I enjoy are: running 🏃‍♂️, golf 🏌️, chess ♟️, a
 - [Bluesky](https://bsky.app/profile/jumbosushi.bsky.social)
 - [Linkedin](https://www.linkedin.com/in/yatsushi/)
 
-This site uses the excellent [Hugo ʕ•ᴥ•ʔ Bear](https://github.com/janraasch/hugo-bearblog) theme.
+This site is built with [Hugo](https://gohugo.io/) and the [Hugo ʕ•ᴥ•ʔ Bear](https://github.com/janraasch/hugo-bearblog) theme.
