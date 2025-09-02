@@ -19,6 +19,7 @@ Some of things I enjoy are: running 🏃‍♂️, golf 🏌️, chess ♟️, a
 ### Get in touch 📫
 
 - Email: atsushi «at» yatsushi.com
+- [GitHub](https://github.com/jumbosushi)
 - [Twitter](https://twitter.com/jumbosushi)
 - [Bluesky](https://bsky.app/profile/jumbosushi.bsky.social)
 - [Linkedin](https://www.linkedin.com/in/yatsushi/)
