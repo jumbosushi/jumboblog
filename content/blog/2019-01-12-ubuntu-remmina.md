@@ -6,7 +6,7 @@ slug = "sharing-a-Linux-directory-with-Windows-VM-via-Remmina"
 
 In [COMM335](https://mybcom.sauder.ubc.ca/courses-money-enrolment/courses/comm-335) at UBC, students were required to use the faculty-managed Windows VM's Microsoft Access (DBMS GUI tool). Unfortunately, they didn't have a setup guide for Linux as of 2019, and I had some trouble allowing the remote Windows VM to access local directories on my Ubuntu 16.04.
 
-![mac_guide_pic](https://user-images.githubusercontent.com/9669739/51080253-d79af500-168c-11e9-82f4-f505a777613b.png)
+![mac_guide_pic](/images/2019-01-12-ubuntu-remmina/mac_guide.png)
 
 (Picture taken from the faculty's guide for Mac)
 
@@ -25,11 +25,11 @@ Follow the faculty's setup guide for Mac to get the `.rdp` file.
 Open Remmina's main window, and find the `import` option from its top-right hamburger menu.
 Import the previously saved `.rdp` file.
 
-![rem1](https://user-images.githubusercontent.com/9669739/51066471-27ab8600-15bf-11e9-9684-d20072675aa9.png)
+![rem1](/images/2019-01-12-ubuntu-remmina/rem1.png)
 
 Once imported, you should see the Sauder connection row in the table.
 
-![rem2](https://user-images.githubusercontent.com/9669739/51066602-11ea9080-15c0-11e9-9496-e3a8aae90bad.png)
+![rem1](/images/2019-01-12-ubuntu-remmina/rem2.png)
 
 ### Step 3
 

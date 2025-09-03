@@ -8,7 +8,7 @@ You're taking a CS course at UBC and have just finished a chunk of work that you
 
 When you try to `git push` or `git pull`, you're asked to type in your CS department's username and password:
 
-![ex_git_push](https://user-images.githubusercontent.com/9669739/51456134-5df4ae00-1d01-11e9-91e6-d0b83e013f24.png)
+![ex_git_push](/images/2019-01-20-git-credentials/git_credentials.png)
 
 This guide will show you how to use git config to cache your authentication info.
 
