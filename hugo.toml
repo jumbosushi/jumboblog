@@ -58,3 +58,7 @@ codeFences = true
 # Only make RSS feed for blog posts
 home = ["html"]
 section = ["html", "rss"]
+
+[caches]
+[caches.images]
+dir = ':cacheDir/images'
