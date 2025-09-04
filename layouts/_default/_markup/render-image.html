@@ -1,0 +1,9 @@
+{{- $image := resources.Get .Destination -}}
+{{- if $image -}}
+  {{- if strings.HasSuffix $image ".gif" -}}
+    <img src="{{ $image.RelPermalink }}" alt="{{ .Text }}"{{- with .Title }} title="{{ . }}"{{ end }} loading="lazy" />
+  {{- else -}}
+    {{- $optimized := $image.Process "webp q75 lanczos" -}}
+    <img src="{{ $optimized.RelPermalink }}" alt="{{ .Text }}"{{- with .Title }} title="{{ . }}"{{ end }} loading="lazy" decoding="async" />
+  {{- end -}}
+{{- end -}}

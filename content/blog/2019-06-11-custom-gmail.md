@@ -4,7 +4,7 @@ date = "2019-06-11"
 slug = "build-custom-email-with-mailgun-and-namecheap"
 +++
 
-![title_logo](/images/2019-06-11-custom-email/title_logo.png)
+![title logo](images/2019-06-11-custom-email/title_logo.png)
 
 I've used Zoho Mail for quite some time but was never happy with their UI. With some googling, I found that [Mailgun](https://www.mailgun.com) makes it pretty easy for me to set up a custom email that I can manage on Gmail with my own domain from [Namecheap](https://www.namecheap.com) for free!
 
@@ -18,7 +18,7 @@ After you've logged in, go to **Sending > Domains** from the sidebar. Click on "
 
 Here's what it might look like:
 
-![add_domain](/images/2019-06-11-custom-email/add_domain.png)
+![Add domain](images/2019-06-11-custom-email/add_domain.png)
 
 Although they recommend using a dedicated subdomain for email, using the main domain as `yatsushi.com` worked for me.
 
@@ -28,13 +28,13 @@ When you add a new domain, the page will jump to the DNS settings page. Leave th
 
 Jump to your domain's DNS settings page on Namecheap. Before we put in any new DNS records, let's check what Mailgun says to do.
 
-![mailgun_setting](/images/2019-06-11-custom-email/mailgun_setting.png)
+![Mailgun setting](images/2019-06-11-custom-email/mailgun_setting.png)
 
 (Grayed out my own DNS record values)
 
 **DO NOT copy Mailgun's hostname field into Namecheap's "Host" value!** (I waited 48 hours until I realized I did something wrong :/). It turns out Namecheap expects its own domain to be written as an **@** sign. This means where Mailgun expects the `mailo._domainkey.example.com` field, remove `example.com`, so on Namecheap you would write `mailo_domainkey` only. After you fill it out this way, the form should look something like this:
 
-![namecheap_setup_1](/images/2019-06-11-custom-email/namecheap_setup_1.png)
+![Namecheap setup](images/2019-06-11-custom-email/namecheap_setup_1.png)
 
 Do the same operation for MX Records and CNAME! (The MX record's host should be **@**, and the CNAME record's host field would be written as `email` instead of what Mailgun says to write, which is `email.example.com`)
 
@@ -42,7 +42,7 @@ Now that DNS records are added, let's refresh the **Domain Settings** page a cou
 
 If everything is working on the Namecheap side at this point, you should see a green checkmark along with the different requirements.
 
-![complete_setup_page](/images/2019-06-11-custom-email/complete_setup_page.png)
+![Complete setup page](images/2019-06-11-custom-email/complete_setup_page.png)
 
 ## Setting up a receiving route
 
@@ -50,7 +50,7 @@ We're ready to set up a receiving route on Mailgun. Go to the **Receiving** sett
 
 I decided to use the "Match Recipient" option, but "Catch All" should work as well. For the recipient, we'll put our new email (`atsushi@yatsushi.com` for me). For the **Forward** section, we'll put our existing Gmail address. Here's what it might look like when this part of the page is done:
 
-![receiving](/images/2019-06-11-custom-email/receiving.png)
+![Receiving route setup](images/2019-06-11-custom-email/receiving.png)
 
 Set the priority to a low number (I use 1), and we're good to go! Click "Create Route", and we'll move on to the sending part.
 
@@ -58,7 +58,7 @@ Set the priority to a low number (I use 1), and we're good to go! Click "Create 
 
 Go to **Sending > Domain Settings** from the side menu. Find the **SMTP Credentials** tab header. Once you're on this page, click on "New SMTP User". This is where we get to define our new custom email! Very exciting. Go ahead and create new credentials.
 
-![receive_route](/images/2019-06-11-custom-email/receive_route.png)
+![SMTP credentials](images/2019-06-11-custom-email/receive_route.png)
 
 It will give you a password, and **be sure to store it somewhere safe since they won't show it to you again!** We'll be using the other details included on this page to set up a new account on Gmail.
 
@@ -66,15 +66,15 @@ It will give you a password, and **be sure to store it somewhere safe since they
 
 Go to your Gmail inbox, and go to the **Settings** page from the gear icon. Click on the **Accounts and Import** tab, and go to the **Add another email address** link from the *Send mail as* subsection.
 
-![add_email](/images/2019-06-11-custom-email/add_email.png)
+![Add email](images/2019-06-11-custom-email/add_email.png)
 
 In the new popup, put your new address into the *email* field, then click next. On the next page, we'll put what the SMTP Settings page on Mailgun suggested. Use **smtp.mailgun.org**, **your new email**, and the **previously saved password** in each field. Here's what it may look like:
 
-![smtp](/images/2019-06-11-custom-email/smtp.png)
+![SMTP settings](images/2019-06-11-custom-email/smtp.png)
 
 When you click **Add Account**, Gmail will send a confirmation email to the new email **which should be forwarded to your own Gmail address**! Complete the confirmation steps, and Gmail is set up to send new emails from your custom domain email!
 
-![new_email](/images/2019-06-11-custom-email/new_email.png)
+![New email compose](images/2019-06-11-custom-email/new_email.png)
 
 And that's it! Your email is ready to be used.
 

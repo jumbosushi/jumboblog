@@ -43,7 +43,7 @@ title = "yatsushi"
 dateFormat = "2006-01-02"
 
 # Inject a made-with-line at the bottom of the page
-# I hide it, but do mention the theme used in about page
+# I hide it, but do mention the theme used in the about page
 hideMadeWithLine = true
 
 # Configure markup highlighter to match "Bearblog" aesthetics, see
