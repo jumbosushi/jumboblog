@@ -1,3 +1,4 @@
+{{- /* Use the render hook to make asset images available in posts */ -}}
 {{- $image := resources.Get .Destination -}}
 {{- if $image -}}
   {{- if strings.HasSuffix $image ".gif" -}}
