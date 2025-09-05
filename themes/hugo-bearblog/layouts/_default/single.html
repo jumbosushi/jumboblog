@@ -13,6 +13,11 @@
   {{ .Content }}
 </content>
 
+{{- /* Add comments via giscus */ -}}
+{{ if eq .Type "blog" }}
+    {{- partial "comments.html" . -}}
+{{ end }}
+
 {{ if eq .Type "blog" }}{{ if (.Param "enablePostNavigator")}}
 {{- partial "post_navigator.html" . -}}
 {{ end }}{{ end }}
