@@ -4,7 +4,7 @@ date = "2020-11-08"
 slug = "tz-database"
 +++
 
-The other day I ran into [this timezone issue](https://github.com/tzinfo/tzinfo/issues/120) in Ruby, and it exposed me to the concept of the tz database that I didn't know before. There were almost no blog posts explaining how it works, so I decided to write one myself.
+The other day I ran into [this timezone issue](https://github.com/tzinfo/tzinfo/issues/120) in Ruby, and that's when I discovered the tz database for the first time. There were almost no blog posts explaining how it works, so I decided to write one myself.
 
 We'll be using the `alpine:3.12` Docker image to test things out.
 
