@@ -10,6 +10,8 @@ Hi there, I'm Atsushi 👋
 
 I'm a Software Engineer based in San Francisco 🌁, originally from Kyoto ⛩️
 
+I currently work at [Retool](https://retool.com/) tinkering on DevX toolings.
+
 I mainly write about systems I'm interested in or things I got stuck on recently.
 
 Some of my interests are running 🏃‍♂️, golf 🏌️, chess ♟️, and manga 📚
