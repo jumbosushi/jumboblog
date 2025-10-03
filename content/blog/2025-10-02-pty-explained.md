@@ -12,13 +12,13 @@ The implementation, however, is far from simple. This post will go over how it w
 Pseudo-terminal (PTY) is a virtualization of the legacy teletype (TTY) hardware. It consists of a pair of character devices: leader & follower (or master & slave). The pair acts as a bidirectional channel.
 All writes to the device files are handled by the kernel's TTY driver & line discipline before being passed to the reading side. Line discipline interprets special characters (e.g. converting CTRL-C to SIGINT).
 
-Terminal Emulators (e.g. iTerm2, Ghostty, etc) use pty leader to send & receive data to print to the GUI. The process running in the shell reads & writes data from its pty follower. Multiple processes can share the same pty follower through forking.
+terminal emulators (e.g. iterm2, ghostty, etc) use pty leader to send & receive data to print to the gui. the process running in the shell reads & writes data from its pty follower. multiple processes can share the same pty follower through forking.
 
-Here's an example diagram when I run `python3 -c "import time; time.sleep(100)"` in a `zsh` shell:
+here's an example diagram when i run `python3 -c "import time; time.sleep(100)"` in a `zsh` shell:
 
 ![simple_python](/images/2025-10-02-pty-explained/python.png)
 
-Notice how Python process shares the same pty follower as the parent zsh process since it was forked.
+notice how python process shares the same pty follower as the parent zsh process since it was forked.
 
 This topic alone deserves its own blog series, so read the reference materials below for more deep dive:
 - ["What is a Terminal Emulator? Understanding 'ls' Command"](https://www.warp.dev/blog/what-happens-when-you-open-a-terminal-and-enter-ls)
@@ -38,7 +38,7 @@ def spawn(argv, master_read=_read, stdin_read=_read):
         os.execlp(argv[0], *argv)
 ```
 
-One of the first things it does is to call a `fork()` method from the same module (not the `os.fork()`). Before the process forks a child process, it calls `openpty()` to open a new set of PTY pairs. Afterwards, it executes the command it was passed in via the `argv[0]` param in the child process. Here's a diagram showing the PTY pairs (PTY pairs are color coded) after calling `pty.spawn()` from the Python process:
+One of the first things it does is to call a `fork()` method from the same module (not the `os.fork()`). Before the process forks a child process, it calls `openpty()` to open a new set of pty pairs. Afterwards, it executes the command it was passed in via the `argv[0]` param in the child process. Here's a diagram showing the pty pairs (pty pairs are color coded) after calling `pty.spawn()` from the Python process:
 
 ![python_two_pty](/images/2025-10-02-pty-explained/python-two-pty.png)
 
@@ -54,9 +54,9 @@ One of the first things it does is to call a `fork()` method from the same modul
         restore = False
 ```
 
-Next, the code manipulates the terminal configuration. These methods are from `termios` which is a C API to manipulate line discipline behavior. It saves the current configuration into a `mode` variable (which is used later). It then sets the PTY follower that stdin is connected to into `raw` mode.
+Next, the code manipulates the terminal configuration. These methods are from `termios` which is a C API to manipulate line discipline behavior. It saves the current configuration into a `mode` variable (which is used later). It then sets the pty follower that stdin is connected to into `raw` mode.
 
-When a PTY follower is in `raw` mode, it disables most line discipline features, and it passes the data as is to the receiving end. This means that the line discipline will no longer process `CTRL-C` key press as `SIGINT` for this PTY follower. Note that this only affects the original PTY follower the parent Python process was attached to (shown in red), not the new pair created in the earlier step. The goal of this config change is to allow the parent process to intercept control characters and forward them to the child process's PTY instead.
+When a pty follower is in `raw` mode, it disables most line discipline features, and it passes the data as is to the receiving end. This means that the line discipline will no longer process `CTRL-C` key press as `SIGINT` for this pty follower. Note that this only affects the original pty follower the parent Python process was attached to (shown in red), not the new pair created in the earlier step. The goal of this config change is to allow the parent process to intercept control characters and forward them to the child process's pty instead.
 
 ![python_pty_raw](/images/2025-10-02-pty-explained/python-pty-raw.png)
 
@@ -84,15 +84,15 @@ See ["A Brief Introduction to termios"](https://blog.nelhage.com/2009/12/a-brief
         _copy(master_fd, master_read, stdin_read)
 ```
 
-It then calls the `_copy()` method which is the most complicated part. The parent Python process calls `select()` on stdin (fd 0, connected to the original PTY follower shown in red in the diagram) and on the new PTY leader fd. The parent process becomes responsible for passing data between the two. This part is complicated so let's examine both incoming and outgoing data.
+It then calls the `_copy()` method which is the most complicated part. The parent Python process calls `select()` on stdin (fd 0, connected to the original pty follower shown in red in the diagram) and on the new pty leader fd. The parent process becomes responsible for passing data between the two. This part is complicated so let's examine both incoming and outgoing data.
 
 ### Incoming
 
 ![incoming](/images/2025-10-02-pty-explained/incoming.png)
 
-The parent process invokes the `stdin_read` callback on incoming data from `stdin`. By default, it runs `os.read(fd, 1024)`. The data returned from `stdin_read` is then written to the PTY leader (`/dev/ptmx` on MacOS), which gets piped to the new PTY follower (in this case `/dev/tty002`).
+The parent process invokes the `stdin_read` callback on incoming data from `stdin`. By default, it runs `os.read(fd, 1024)`. The data returned from `stdin_read` is then written to the pty leader (`/dev/ptmx` on MacOS), which gets piped to the new pty follower (in this case `/dev/tty002`).
 
-This may seem overly complicated, but it makes sense when we understand how it handles `SIGINT`. In a scenario where we run `pty.spawn()`, when we press `CTRL-C` in the terminal we probably intend to send the `SIGINT` to the child process. Because we set the line discipline of the original PTY follower (in this case /dev/tty001, connected to stdin) to `raw` mode, the parent Python process doesn't receive `SIGINT` from the kernel. Instead, the `\x03` data (ASCII for CTRL-C) is read by `stdin_read` to be passed to the 2nd pair of PTYs. When the new PTY follower (`/dev/tty002`) receives the `\x03`, the kernel instead sends `SIGINT` to the child process as expected.
+This may seem overly complicated, but it makes sense when we understand how it handles `SIGINT`. In a scenario where we run `pty.spawn()`, when we press `CTRL-C` in the terminal we probably intend to send the `SIGINT` to the child process. Because we set the line discipline of the original pty follower (in this case `/dev/tty001`, connected to stdin) to `raw` mode, the parent Python process doesn't receive `SIGINT` from the kernel. Instead, the `\x03` data (ASCII for CTRL-C) is read by `stdin_read` to be passed to the 2nd pair of ptys. When the new pty follower (`/dev/tty002`) receives the `\x03`, the kernel instead sends `SIGINT` to the child process as expected.
 
 This [python gist](https://gist.github.com/jumbosushi/035e8ee8e8f4e11956a4a0cac678eee8) walks through this exact `SIGINT` scenario. It does the following:
 - Set up signal handler for `SIGINT`
@@ -118,7 +118,7 @@ When the first `^C` is received, you see that the signal handler for the child p
 
 ![outgoing](/images/2025-10-02-pty-explained/outgoing.png)
 
-Similarly when the data is outgoing from the new PTY follower pair, it's read by the parent Python process to be handled with the `master_read` param function.
+Similarly when the data is outgoing from the new pty follower pair, it's read by the parent Python process to be handled with the `master_read` param function.
 
 ### TTY restoration
 
@@ -137,11 +137,11 @@ That's it for `pty.spawn()`!
 
 ## TTY routing
 
-A keen reader might notice something odd on MacOS. While PTY followers are always named with the pattern `/dev/ttyXXX`, the `/dev/ptmx` character device file is used as the PTY leader for both pairs.
+A keen reader might notice something odd on MacOS. While pty followers are always named with the pattern `/dev/ttyXXX`, the `/dev/ptmx` character device file is used as the pty leader for both pairs.
 
 ![same-leader](/images/2025-10-02-pty-explained/same-leader.png)
 
-This [stackexchange answer](https://unix.stackexchange.com/questions/449315/some-confused-concept-ptmx-and-tty) explains that it is due to the implementation of the `openpty()` function. Internally, the kernel keeps track of all PTY pairs, and distinguishes each one based on the minor number of the character device file. Here's an example from the earlier Python script on my machine:
+This [stackexchange answer](https://unix.stackexchange.com/questions/449315/some-confused-concept-ptmx-and-tty) explains that it is due to the implementation of the `openpty()` function. Internally, the kernel keeps track of all pty pairs, and distinguishes each one based on the minor number of the character device file. Here's an example from the earlier Python script on my machine:
 
 ```txt
 $ lsof -p 4094 | awk "NR == 1 || /dev/" # parent process
