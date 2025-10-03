@@ -12,13 +12,13 @@ The implementation, however, is far from simple. This post will go over how it w
 Pseudo-terminal (PTY) is a virtualization of the legacy teletype (TTY) hardware. It consists of a pair of character devices: leader & follower (or master & slave). The pair acts as a bidirectional channel.
 All writes to the device files are handled by the kernel's TTY driver & line discipline before being passed to the reading side. Line discipline interprets special characters (e.g. converting CTRL-C to SIGINT).
 
-terminal emulators (e.g. iterm2, ghostty, etc) use pty leader to send & receive data to print to the gui. the process running in the shell reads & writes data from its pty follower. multiple processes can share the same pty follower through forking.
+Terminal emulators (e.g. iterm2, ghostty, etc) use pty leader to send & receive data to print to the gui. the process running in the shell reads & writes data from its pty follower. multiple processes can share the same pty follower through forking.
 
-here's an example diagram when i run `python3 -c "import time; time.sleep(100)"` in a `zsh` shell:
+Here's an example diagram when i run `python3 -c "import time; time.sleep(100)"` in a `zsh` shell:
 
 ![simple_python](/images/2025-10-02-pty-explained/python.png)
 
-notice how python process shares the same pty follower as the parent zsh process since it was forked.
+Notice how python process shares the same pty follower as the parent zsh process since it was forked.
 
 This topic alone deserves its own blog series, so read the reference materials below for more deep dive:
 - ["What is a Terminal Emulator? Understanding 'ls' Command"](https://www.warp.dev/blog/what-happens-when-you-open-a-terminal-and-enter-ls)
