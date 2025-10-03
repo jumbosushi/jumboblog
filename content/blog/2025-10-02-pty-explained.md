@@ -56,7 +56,7 @@ One of the first things it does is to call a `fork()` method from the same modul
 
 Next, the code manipulates the terminal configuration. These methods are from `termios` which is a C API to manipulate line discipline behavior. It saves the current configuration into a `mode` variable (which is used later). It then sets the pty follower that stdin is connected to into `raw` mode.
 
-When a pty follower is in `raw` mode, it disables most line discipline features, and it passes the data as is to the receiving end. This means that the line discipline will no longer process `CTRL-C` key press as `SIGINT` for this pty follower. Note that this only affects the original pty follower the parent Python process was attached to (shown in red), not the new pair created in the earlier step. The goal of this config change is to allow the parent process to intercept control characters and forward them to the child process's pty instead.
+When a pty follower is in `raw` mode, it disables most line discipline features, and it passes the data as is to the receiving end. This means that the line discipline will no longer process `CTRL-C` key press as `SIGINT` for this pty follower (shown in red).
 
 ![python_pty_raw](/images/2025-10-02-pty-explained/python-pty-raw.png)
 
