@@ -161,7 +161,7 @@ For example, when data is written to `/dev/ptmx` with the device number `15,2`, 
 
 ## Use case for pty.spawn
 
-The `subprocess` module covers most use cases and should be your first choice. However, `pty.spawn()` is useful when you need the spawned process to have a controlling terminal (e.g. accepting inputs from `/dev/tty`). When you run a process with `subprocess.Popen`, it typically shows `??` in the TTY column of `ps` output because it has no controlling terminal.
+The `subprocess` module covers most use cases and should be your first choice. However, `pty.spawn()` is useful when you need the spawned process to have a controlling terminal (e.g. read inputs from `/dev/tty`). When you run a process with `subprocess.Popen`, it typically shows `??` in the TTY column of `ps` output because it has no controlling terminal.
 
 ## Summary
 
