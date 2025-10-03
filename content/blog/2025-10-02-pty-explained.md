@@ -94,7 +94,7 @@ The parent process invokes the `stdin_read` callback on incoming data from `stdi
 
 This may seem overly complicated, but it makes sense when we understand how it handles `SIGINT`. In a scenario where we run `pty.spawn()`, when we press `CTRL-C` in the terminal we probably intend to send the `SIGINT` to the child process. Because we set the line discipline of the original pty follower (in this case `/dev/tty001`, connected to stdin) to `raw` mode, the parent Python process doesn't receive `SIGINT` from the kernel. Instead, the `\x03` data (ASCII for CTRL-C) is read by `stdin_read` to be passed to the 2nd pair of ptys. When the new pty follower (`/dev/tty002`) receives the `\x03`, the kernel instead sends `SIGINT` to the child process as expected.
 
-This [python gist](https://gist.github.com/jumbosushi/035e8ee8e8f4e11956a4a0cac678eee8) walks through this exact `SIGINT` scenario. It does the following:
+This [python gist](https://gist.github.com/jumbosushi/5deccfa9e156e53e1e33b87c65c9429b) walks through this exact `SIGINT` scenario. It does the following:
 - Set up signal handler for `SIGINT`
 - Call `pty.spawn()` of itself if it's the parent
 - Call `time.sleep(1)` to wait till the signal
