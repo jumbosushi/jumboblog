@@ -4,7 +4,7 @@ title = "Python's pty.spawn() demystified"
 slug = "python-pty-spawn-demystified"
 +++
 
-When a naive engineer (me a month ago) sees `pty.spawn()` for the first time, they might think "ok so it starts a new process in a new PTY. Easy."
+When a naive engineer (me a month ago) sees [`pty.spawn()`](https://docs.python.org/3/library/pty.html#pty.spawn) for the first time, they might think "ok so it starts a new process in a new PTY. Easy."
 The implementation, however, is far from simple. This post will go over how it works under the hood.
 
 ## What is PTY?
@@ -84,7 +84,7 @@ See ["A Brief Introduction to termios"](https://blog.nelhage.com/2009/12/a-brief
         _copy(master_fd, master_read, stdin_read)
 ```
 
-It then calls the `_copy()` method which is the most complicated part. The parent Python process calls `select()` on stdin (fd 0, connected to the original pty follower shown in red in the diagram) and on the new pty leader fd. The parent process becomes responsible for passing data between the two. This part is complicated so let's examine both incoming and outgoing data.
+It then calls the `_copy()` method which is the most complicated part. The parent Python process calls `select()` on stdin (fd 0, nconnected to the original pty follower) and on the new pty leader fd. The parent process becomes responsible for passing data between the two. This part is complicated so let's examine both incoming and outgoing data.
 
 ### Incoming
 
