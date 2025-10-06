@@ -1,11 +1,27 @@
 +++
-date = "2025-10-02"
+date = "2025-10-06"
 title = "Python's pty.spawn() demystified"
 slug = "python-pty-spawn-demystified"
 +++
 
-When a naive engineer (me a month ago) sees [`pty.spawn()`](https://docs.python.org/3/library/pty.html#pty.spawn) for the first time, they might think "ok so it starts a new process in a new PTY. Easy."
-The implementation, however, is far from simple. This post will go over how it works under the hood.
+When I saw [`pty.spawn()`](https://docs.python.org/3/library/pty.html#pty.spawn) for the first time, I thought "ok so it starts a new process in a new PTY. Easy." The implementation, however, was far from simple. For example in this [simple gist](https://gist.github.com/jumbosushi/bd9bd0b440536acca7469235de94f56a):
+
+```txt
+$ python3 py_pty_simple.py
+[PARENT] Spawning child in PTY...
+[CHILD] Running in PTY, press Ctrl+C...
+^C
+[CHILD] Caught SIGINT, exiting...
+[PARENT] pty.spawn() returned, press Ctrl+C...
+^C
+[PARENT] Caught SIGINT, exiting...
+```
+
+A couple of things weren't immediately clear:
+- How does the child process able to receive the signal and bypass the parent process?
+- How does the child process able to write to the terminal that the parent process is attached to if it's in a different PTY?
+
+This post will go over how it works under the hood.
 
 ## What is PTY?
 
@@ -94,26 +110,6 @@ The parent process invokes the `stdin_read` callback on incoming data from `stdi
 
 This may seem overly complicated, but it makes sense when we understand how it handles `SIGINT`. In a scenario where we run `pty.spawn()`, when we press `CTRL-C` in the terminal we probably intend to send the `SIGINT` to the child process. Because we set the line discipline of the original pty follower (in this case `/dev/tty001`, connected to stdin) to `raw` mode, the parent Python process doesn't receive `SIGINT` from the kernel. Instead, the `\x03` data (ASCII for CTRL-C) is read by `stdin_read` to be passed to the 2nd pair of ptys. When the new pty follower (`/dev/tty002`) receives the `\x03`, the kernel instead sends `SIGINT` to the child process as expected.
 
-This [python gist](https://gist.github.com/jumbosushi/5deccfa9e156e53e1e33b87c65c9429b) walks through this exact `SIGINT` scenario. It does the following:
-- Set up signal handler for `SIGINT`
-- Call `pty.spawn()` of itself if it's the parent
-- Call `time.sleep(1)` to wait till the signal
-
-```txt
-$ python3 pty_signal_simple.py 0
-[parent] Waiting for SIGINT ...
-[parent] ================
-[parent] Calling pty.spawn() ...
-     [child] Waiting for SIGINT ...
-^C
-     [child] Received SIGINT, exiting...
-[parent] Returned
-^C
-[parent] Received SIGINT, exiting...
-```
-
-When the first `^C` is received, you see that the signal handler for the child process took over. After the child process exits, the 2nd `^C` is correctly handled by the parent's process's signal handler.
-
 ### Outgoing
 
 ![outgoing](/images/2025-10-02-pty-explained/outgoing.png)
@@ -132,6 +128,22 @@ Similarly when the data is outgoing from the new pty follower pair, it's read by
 ```
 
 When the `_copy` method returns after either file descriptors receive `EOF`, it restores the previous TTY setting saved in the `mode` variable by using termios `tcsetattr`. Afterwards, it runs resources cleanup code not included here.
+
+The earlier [python gist](https://gist.github.com/jumbosushi/bd9bd0b440536acca7469235de94f56a) demonstrates the TTY setting restoration:
+
+```txt
+$ python3 py_pty_simple.py
+[PARENT] Spawning child in PTY...
+[CHILD] Running in PTY, press Ctrl+C...
+^C
+[CHILD] Caught SIGINT, exiting...
+[PARENT] pty.spawn() returned, press Ctrl+C...
+^C
+[PARENT] Caught SIGINT, exiting...
+```
+
+When the first `^C` is received, you see that the signal bypasses the parent process TTY since it's in `raw` mode.. After the child process exits, the 2nd `^C` is correctly handled by the parent's process's signal handler after the TTY settings were restored.
+
 
 That's it for `pty.spawn()`!
 
@@ -158,10 +170,6 @@ Python  4095 atsushi    2u   CHR   16,2    0t240                 997 /dev/ttys00
 ```
 
 For example, when data is written to `/dev/ptmx` with the device number `15,2`, the kernel routes it to `/dev/tty002`, which has the matching minor device number (the `2` in `16,2` matches across both devices).
-
-## Use case for pty.spawn
-
-The `subprocess` module covers most use cases and should be your first choice. However, `pty.spawn()` is useful when you need the spawned process to have a controlling terminal (e.g. read inputs from `/dev/tty`). When you run a process with `subprocess.Popen`, it typically shows `??` in the TTY column of `ps` output because it has no controlling terminal.
 
 ## Summary
 
