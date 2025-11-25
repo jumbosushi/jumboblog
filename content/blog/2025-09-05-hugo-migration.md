@@ -92,7 +92,7 @@ The top level dot `.` in this case refers to the [Render Hook Image context][ima
 
 Michael Welford's ["Responsive image management with Hugo"][image-blog-post] goes much beyond my basic implementation if you want to expand on it.
 
-Using the simple image processing allowed one of my image-heavy posts to reduce total image size from 673 KB to 176 KB total, which is a 73% reduction!
+Using the simple image processing allowed one of my image-heavy posts to reduce total image size from 673 KB to 176 KB, which is a 73% reduction!
 
 ## Comment system
 

@@ -52,6 +52,20 @@ def spawn(argv, master_read=_read, stdin_read=_read):
     pid, master_fd = fork()
     if pid == CHILD:
         os.execlp(argv[0], *argv)
+
+
+def fork():
+    ...
+    master_fd, slave_fd = openpty()
+    pid = os.fork()
+    if pid == CHILD:
+        os.close(master_fd)
+        os.login_tty(slave_fd)
+    else:
+        os.close(slave_fd)
+
+    # Parent and child process.
+    return pid, master_fd
 ```
 
 One of the first things it does is to call a `fork()` method from the same module (not the `os.fork()`). Before the process forks a child process, it calls `openpty()` to open a new set of pty pairs. Afterwards, it executes the command it was passed in via the `argv[0]` param in the child process. Here's a diagram showing the pty pairs (pty pairs are color coded) after calling `pty.spawn()` from the Python process:
@@ -142,7 +156,7 @@ $ python3 py_pty_simple.py
 [PARENT] Caught SIGINT, exiting...
 ```
 
-When the first `^C` is received, you see that the signal bypasses the parent process TTY since it's in `raw` mode.. After the child process exits, the 2nd `^C` is correctly handled by the parent's process's signal handler after the TTY settings were restored.
+When the first `^C` is received, you see that the signal bypasses the parent process TTY since it's in `raw` mode. After the child process exits, the 2nd `^C` is correctly handled by the parent's process's signal handler after the TTY settings were restored.
 
 
 That's it for `pty.spawn()`!
