@@ -4,6 +4,8 @@ draft = true
 title = 'Bazel Skyframe explained'
 +++
 
+<!-- https://excalidraw.com/#json=jBPiR7mOStUrB0pUPZEis,qvxLhEEFpNJd7Gbo1gR0BA -->
+
 Someone reading into Bazel sooner or later runs into a concept called "Skyframe". But it's so hard to understand (<insert links>). This post goes over the architecture in closer details with an example
 
 Good overview:
