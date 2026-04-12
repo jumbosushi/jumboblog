@@ -1,7 +1,7 @@
 # Basic metadata configuration
 baseURL = 'https://yatsushi.com/'
 languageCode = 'en-us'
-title = "yatsushi"
+title = "Atsushi Yamamoto"
 theme = "hugo-bearblog"
 author = "Atsushi Yamamoto"
 copyright = "Copyright © 2025, Atsushi Yamamoto."
@@ -18,7 +18,7 @@ tags = "/tag/:slug"
 
 [params]
 # The "description" of your website. This is used in the meta data of your generated html.
-description = "Atsushi Yamamoto's personal website"
+description = "Atsushi Yamamoto is a software engineer based in SF"
 
 # The path to your "favicon". This should be a square (at least 32px x 32px) png-file.
 # Hint: It's good practise to also put a "favicon.ico"-file into your "static"-folder.
@@ -33,7 +33,7 @@ images = ["images/share.png"]
 # Another "title" :-). This one is used as the site_name on the Hugo's internal
 # opengraph structured data template.
 # See https://ogp.me/ and https://gohugo.io/templates/internal#open-graph.
-title = "yatsushi"
+title = "Atsushi Yamamoto"
 
 # By default, this theme displays dates with a format like "02 Jan, 2006", but
 # you can customize it by setting the `dateFormat` param in your site's config
