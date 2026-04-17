@@ -84,10 +84,6 @@ jobs:
             --logLevel debug \
             --baseURL "${{ steps.pages.outputs.base_url }}/" \
             --cacheDir "${{ runner.temp }}/hugo_cache"
-      - name: Log generated title
-        run: |
-          echo "=== <title> in public/index.html ==="
-          grep -o '<title>[^<]*</title>' public/index.html
       - name: Cache save
         id: cache-save
         uses: actions/cache/save@v4
