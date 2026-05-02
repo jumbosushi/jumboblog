@@ -1,5 +1,5 @@
 +++
-title = "yatsushi"
+title = "Atsushi Yamamoto"
 url = "/"
 aliases = ["/blog/"]
 
