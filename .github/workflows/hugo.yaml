@@ -78,10 +78,13 @@ jobs:
           restore-keys: hugo-
       - name: Build the site
         run: |
+          # Hardcoded because Cloudflare proxying prevents GitHub from issuing a
+          # Let's Encrypt cert, so "Enforce HTTPS" can't be enabled in Pages settings,
+          # and steps.pages.outputs.base_url returns http:// instead of https://.
           hugo \
             --gc \
             --minify \
-            --baseURL "${{ steps.pages.outputs.base_url }}/" \
+            --baseURL "https://yatsushi.com/" \
             --cacheDir "${{ runner.temp }}/hugo_cache"
       - name: Cache save
         id: cache-save
