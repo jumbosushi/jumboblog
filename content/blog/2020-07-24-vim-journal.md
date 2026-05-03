@@ -2,6 +2,7 @@
 title = "Vim as a journal"
 date = "2020-07-26"
 slug = "vim-as-a-journal"
+description = "How to use Vim and VimWiki as a daily journaling system, with templates, Kindle vocabulary, and writing-focused plugins."
 +++
 
 There are many schools of thought on which medium to record your journals in (e.g., physical journal, audio recordings, etc). I like using text files for a couple of reasons:

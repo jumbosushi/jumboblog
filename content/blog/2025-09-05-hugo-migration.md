@@ -2,6 +2,7 @@
 date = "2025-09-05"
 title = "Tips & tricks for migrating to Hugo"
 slug = "tips-for-migrating-to-hugo"
+description = "Lessons learned migrating a blog from Jekyll to Hugo: design, RSS feeds, image optimization with render hooks, Giscus comments, and GitHub Pages deployment."
 +++
 
 I migrated this site from Jekyll to Hugo over the course of a week during my between-jobs break!

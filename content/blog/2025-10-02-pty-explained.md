@@ -2,6 +2,7 @@
 date = "2025-10-06"
 title = "Python's pty.spawn() demystified"
 slug = "python-pty-spawn-demystified"
+description = "A detailed walkthrough of Python's pty.spawn() source code — PTY pairs, raw mode, SIGINT routing, and TTY restoration explained step by step."
 +++
 
 When I saw [`pty.spawn()`](https://docs.python.org/3/library/pty.html#pty.spawn) for the first time, I thought "ok so it starts a new process in a new PTY. Easy." The implementation, however, was far from simple. For example in this [simple gist](https://gist.github.com/jumbosushi/bd9bd0b440536acca7469235de94f56a):

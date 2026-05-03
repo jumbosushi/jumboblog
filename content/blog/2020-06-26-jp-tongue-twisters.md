@@ -2,6 +2,7 @@
 title = "Adding pronunciation keys for Japanese tongue twisters with Ruby"
 date = "2020-06-26"
 slug = "jp-tongue-twisters"
+description = "A curated list of Japanese tongue twisters with hiragana pronunciation guides, organized into four difficulty levels."
 +++
 
 I've been struggling with enunciation for quite some time (due to moving between the U.S. and Japan during my language development years), and figured I could work on it during the quarantine.

@@ -2,6 +2,7 @@
 title = "How the tz database works"
 date = "2020-11-08"
 slug = "tz-database"
+description = "A deep dive into the tz database — how timezone source files, zic compilation, and tzdata rules work, with a hands-on custom timezone example."
 +++
 
 The other day I ran into [this timezone issue](https://github.com/tzinfo/tzinfo/issues/120) in Ruby, and that's when I discovered the tz database for the first time. There were almost no blog posts explaining how it works, so I decided to write one myself.

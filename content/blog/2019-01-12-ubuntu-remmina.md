@@ -2,6 +2,7 @@
 title = "Sharing a Linux directory with Windows VM via Remmina"
 date = "2019-01-12"
 slug = "sharing-a-Linux-directory-with-Windows-VM-via-Remmina"
+description = "How to share a local Linux directory with a remote Windows VM using Remmina on Ubuntu, by editing the .remmina config file."
 +++
 
 In [COMM335](https://mybcom.sauder.ubc.ca/courses-money-enrolment/courses/comm-335) at UBC, students were required to use the faculty-managed Windows VM's Microsoft Access (DBMS GUI tool). Unfortunately, they didn't have a setup guide for Linux as of 2019, and I had some trouble allowing the remote Windows VM to access local directories on my Ubuntu 16.04.

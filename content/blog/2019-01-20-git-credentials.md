@@ -2,6 +2,7 @@
 title = 'Store git credentials for remote servers'
 date = '2019-01-20'
 slug = "store-git-credentials-for-remote-servers"
+description = "How to use git credential.helper to cache or permanently store authentication credentials for remote git servers."
 +++
 
 You're taking a CS course at UBC and have just finished a chunk of work that you want to commit.

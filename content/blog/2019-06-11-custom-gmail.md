@@ -2,6 +2,7 @@
 title = "Build a custom email with Mailgun & Namecheap on Gmail"
 date = "2019-06-11"
 slug = "build-custom-email-with-mailgun-and-namecheap"
+description = "Step-by-step guide to setting up a free custom domain email with Mailgun and Namecheap, managed directly from Gmail."
 +++
 
 ![title logo](images/2019-06-11-custom-email/title_logo.png)

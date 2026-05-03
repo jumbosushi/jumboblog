@@ -2,6 +2,7 @@
 title = "Export data from Kindle vocab builder"
 date = "2020-07-08"
 slug = "export-kindle-vocab-builder"
+description = "How to export your Kindle Vocab Builder word list via SQLite and use a Vim keybinding to pull a random word into your daily journal."
 +++
 
 When I read books these days, I prefer e-books mainly due to the dictionary feature. In order to expose myself more to unfamiliar words, I sought ways to:
