@@ -1,0 +1,16 @@
+{{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+{{- $pages := where .Data.Pages ".Permalink" "ne" nil }}
+{{- $seen := slice }}
+{{- range $pages }}
+{{- $loc := .Permalink }}
+{{- if and (not (in $seen $loc)) (ne .RelPermalink "/index.xml") (not (hasSuffix .RelPermalink ".pdf")) }}
+{{- $seen = $seen | append $loc }}
+  <url>
+    <loc>{{ $loc }}</loc>{{ if not .Lastmod.IsZero }}
+    <lastmod>{{ safeHTML ( .Lastmod.Format "2006-01-02T15:04:05-07:00" ) }}</lastmod>{{ end }}
+  </url>
+{{- end }}
+{{- end }}
+</urlset>

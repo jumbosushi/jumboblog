@@ -1,5 +1,6 @@
 +++
 title = "About"
+date = 2026-04-10
 [menus]
   [menus.main]
     name = "about"
