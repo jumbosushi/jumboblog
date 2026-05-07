@@ -1,6 +1,6 @@
 +++
 date = '2026-05-06'
-draft = true
+draft = false
 title = 'Bazel Skyframe explained'
 +++
 
@@ -18,15 +18,15 @@ Skyframe is a **parallel** and **incremental** evaluation framework. Let's break
 
 **Evaluation Framework**
 
-BUILD files establish an explicit DAG relationships between targets. The framework walks the graph and build targets in an efficient order. 
+BUILD files establish an explicit DAG relationships between build targets. The framework walks the graph and build in an efficient order. 
 
 **Incremental**
 
-Each node in the DAG is evaluated step by step, then cached and reused between builds 
+Each node in the DAG is evaluated step by step. It's result is cached and reused between the build phases.
 
 **Parallel**
 
-It's common for even a simple target to depend on hundreds of implicit dependencies like ToolChains. Running them sequentially is not an option for a build tool, so Skyframe evaluates independent nodes in parallel.
+It's common for even a simple target to depend on hundreds of implicit dependencies. Running them sequentially is not an option for a build tool, so Skyframe evaluates independent nodes in parallel.
 
 Let's look at a hello world example to explore this further.
 
@@ -94,7 +94,7 @@ It's common for a build system's DAG to have thousands of nodes, which would be 
 
 Each build target and its dependencies are represented as DAG nodes. A node can be in one of three states: ready, waiting, and done. Each node also has a counter tracking how many dependencies it needs to wait for, which determines state transitions. Evaluator enqueues the nodes that are ready to the Executor, then the Executor runs the node's SkyFunction `.compute()` method.
 
-The interesting behavior in Skyframe is the "restart". On a first pass, a node might be evaluated but it may need to wait for its dependency to be evaluated first. In this case, Skyframe sets the parent node state to `waiting`. When the dependency's state transitions to `done`, evaluator uses the reverse dependency edge to "signal" the parent, decrementing the dependency counter. If the counter reaches 0, the parent node is enqueued again. Eventually, the parent node will "restart" and be evaluated again - this time with complete dependencies available to run its own `.compute` step.
+The interesting behavior in Skyframe is the "restart". On a first pass, a node might be evaluated but it may need to wait for its dependency to be evaluated first. In this case, Skyframe sets the parent node state to `waiting`. When the dependency's state transitions to `done`, evaluator uses the reverse dependency edge to "signal" the parent, decrementing the dependency counter. If the counter reaches 0, the parent node is enqueued again. Eventually, the parent node will "restart" and be evaluated again with complete dependencies available to run its own `.compute` step.
 
 This part is complicated! Let's try to examine this behavior in a simplified code.
 
@@ -171,7 +171,7 @@ As mentioned earlier, each of Bazel's execution phases has a corresponding SkyFu
 - Analysis: [ConfiguredTargetFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/ConfiguredTargetFunction.java;l=122?q=ConfiguredTargetFunction&ss=bazel%2Fbazel)
 - Execution:  [ActionExecutionFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/ActionExecutionFunction.java;l=137?q=ActionExecutionFunction&ss=bazel%2Fbazel) / [TargetCompletionFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/TargetCompletor.java;l=44?q=TargetCompletionFunction&ss=bazel%2Fbazel)
 
-Because each phase shares the same global graph and SkyFunctions compose each other, the cache is reused across phases as well (e.g., reading `hello.py` from the filesystem only once). Caching also goes beyond a single build! The Bazel daemon state persists across the builds, so if the file doesn't change (based on `inotify`) then Bazel reuses the local cache ([this blog](https://jmmv.dev/2020/12/google-no-clean-builds.html) post covers this topic well).
+Because each phase shares the same global graph and SkyFunctions compose each other, the cache is reused across phases as well (e.g., reading `hello.py` from the filesystem only once). Caching also goes beyond a single build! The Bazel daemon state persists across the builds, so if the file doesn't change (based on `inotify`) then Bazel reuses the local cache. [This blog](https://jmmv.dev/2020/12/google-no-clean-builds.html) post covers this topic well.
 
 ## Conclusion
 
