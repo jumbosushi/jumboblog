@@ -20,11 +20,11 @@ Skyframe is a **parallel** and **incremental** evaluation engine. Let's break th
 
 **Evaluation engine**
 
-BUILD files establish an explicit DAG relationships between build targets. The framework walks the graph and build in an efficient order. 
+BUILD files establish explicit DAG relationships between build targets. The framework walks the graph and builds in an efficient order.
 
 **Incremental**
 
-Each node in the DAG is evaluated step by step, and the result is cached. Bazel have mechanisms to determines only rebuild what changed since the last build.
+Each node in the DAG is evaluated step by step, and the result is cached. Bazel has mechanisms to determine what changed since the last build and only rebuild those.
 
 **Parallel**
 
@@ -94,7 +94,7 @@ A SkyFunction can also call other SkyFunctions (e.g., `ARTIFACT` calls `FILE` in
 
 Each build target and its dependencies are represented as DAG nodes. A node can be in one of three states: ready, waiting, and done. Each node also has a counter tracking how many dependencies it needs to wait for, which determines state transitions. When all dependencies are resolved and the counter is 0, the node is considered as `ready`. Evaluator enqueues the `ready` nodes to the Executor, then the Executor runs the node's SkyFunction `.compute()` method.
 
-The interesting behavior in Skyframe is the "restart". On a first pass, a node might be evaluated but it may need to wait for its dependency to be evaluated first (e.g. symlink target needs to to be resolved before the symlink itself). In this case, Skyframe sets the parent node state to `waiting`. When the dependency's state transitions to `done`, evaluator uses the reverse dependency edge to "signal" the parent which decrements the dependency counter. When the counter reaches 0, the parent node is enqueued again. Eventually, the parent node will "restart" and be evaluated again with complete dependencies available to run its own `.compute` step.
+The interesting behavior in Skyframe is the "restart". On a first pass, a node might be evaluated but it may need to wait for its dependency to be evaluated first (e.g. symlink target needs to be resolved before the symlink itself). In this case, Skyframe sets the parent node state to `waiting`. When the dependency's state transitions to `done`, evaluator uses the reverse dependency edge to "signal" the parent which decrements the dependency counter. When the counter reaches 0, the parent node is enqueued again. Eventually, the parent node will "restart" and be evaluated again with complete dependencies available to run its own `.compute` step.
 
 This part is complicated! Let's try to examine this behavior in a simplified code.
 
@@ -130,7 +130,7 @@ I created a [skyframe.py gist](https://gist.github.com/jumbosushi/cdde35941cb4de
 The diagram below shows the state of a graph right after Step 9:
 ![Skyframe execution trace](/images/2026-05-06-bazel-skyframe/execution-trace.png)
 
-Notice that on Step 9, `FILE_STATE:/workspace/` restarted after its dependencies were available. The restart behavior is also visible in the Python Evaluator class:
+Notice that on Step 10, `FILE_STATE:/workspace/` restarted after its dependencies were available. The restart behavior is also visible in the Python Evaluator class:
 ```python
 # Code snippet from the python gist without the noise
 class Evaluator:
@@ -174,15 +174,15 @@ As mentioned earlier, each of Bazel's execution phases has a corresponding SkyFu
 
 Because each phase shares the same global graph and SkyFunctions compose each other, the cache is reused across phases as well (e.g., reading `hello.py` from the filesystem only once).
 
-## Incremetality
+## Incrementality
 
-The Skyframe evaluation cache is also reused beyond a single build! Bazel persist the Skyframe state in it's [server](https://bazel.build/run/client-server) which is used acrosss different client build invocations. It then sets up a file system watcher for local filesystems (using `inotify` on linux and `fsevents` on MacOS).
+The Skyframe evaluation cache is also reused beyond a single build! Bazel persists the Skyframe state in its [server](https://bazel.build/run/client-server) which is used across different client build invocations. It then sets up a file system watcher for local filesystems (using `inotify` on linux and `fsevents` on MacOS). 
 
-When a file is updated, Bazel marks the changed leaf `FileState` node as `CHANGED`. The state change is propaged up the reverse dependencies, but they instead are marked as `DIRTY`. It uses two states in orde to implement "change pruning". Even if the file itself was changed, if the computed output is identical then it can be reused as it is. Internally, only the direct reverse dependencies of the `CHANGED` node are rebuilt first. If the output is identical (e.g. same SHA) then nodes marked as `DIRTY` change it's state to `VERIFIED_CLEAN` and `.compute()` is never called for those.
+When a file is updated, Bazel marks the changed leaf `FileState` node as `CHANGED`. The state change is propagated up the reverse dependencies, but they are instead marked as `DIRTY`. Skyframe uses two states in order to implement "change pruning". Even if the file itself was changed, if the computed output is identical then it can be reused as it is. During the bottom-up re-evaluation, the `CHANGED` node is evaluated first. If the output is identical (e.g. same SHA) then re-evaluation exits early at reverse deps nodes marked as `DIRTY` and skip `.compute()`.
 
 ![Change pruning](/images/2026-05-06-bazel-skyframe/change_prune.png)
 
-[This blog](https://jmmv.dev/2020/12/google-no-clean-builds.html) post covers more in depth.
+[This blog](https://jmmv.dev/2020/12/google-no-clean-builds.html) post covers the file change detection more in depth.
 
 ## Conclusion
 
@@ -196,8 +196,8 @@ With that being said, doing this research helped me build a basic intuition on h
 ## References
 
 - [`BuildTool.java`](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/buildtool/BuildTool.java;l=192;drc=215ec5cd3a0aa09cd9ede99d132465f3c9c59000) is "crux of the build system" and is a great starting point to dig into the Bazel build process internals.
-- [`AbstractParallelEvaluator.java`](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/skyframe/AbstractParallelEvaluator.java?q=AbstractParallelEvaluator&ss=bazel%2Fbazel) manages the DAG node states
-- [`AbstractInMemoryNodeEntry.java`](https://cs.opensource.google/bazel/bazel/+/master/src/main/java/com/google/devtools/build/skyframe/AbstractInMemoryNodeEntry.java;l=65;drc=215ec5cd3a0aa09cd9ede99d132465f3c9c59000;bpv=0;bpt=1) implements the DAG node class
-- [`SkyframeExecutor.java`](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/SkyframeExecutor.java;l=1?q=SkyframeExecutor.java&sq=&ss=bazel%2Fbazel) is the main wrapper class that drives the SkyFrame executions
-- [LocalDiffAwareness.java](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/LocalDiffAwareness.java;l=39?q=inotify&ss=bazel%2Fbazel) sets up the file system watcher
+- [`AbstractParallelEvaluator.java`](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/skyframe/AbstractParallelEvaluator.java;l=63?q=AbstractParallelEvaluator&ss=bazel%2Fbazel) manages the DAG node states
+- [`AbstractInMemoryNodeEntry.java`](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/skyframe/AbstractInMemoryNodeEntry.java;l=26?q=AbstractInMemoryNodeEntry.java&ss=bazel%2Fbazel) implements the DAG node class
+- [`SkyframeExecutor.java`](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/SkyframeExecutor.java;l=345?q=SkyframeExecutor.java&ss=bazel%2Fbazel) is the main wrapper class that drives the SkyFrame executions
+- [`LocalDiffAwareness.java`](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/LocalDiffAwareness.java;l=39?q=inotify&ss=bazel%2Fbazel) sets up the file system watcher
 - All SkyFunctions are in [`src/main/java/com/google/devtools/build/lib/skyframe`](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/) directory within the Bazel repository
