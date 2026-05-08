@@ -92,7 +92,7 @@ A SkyFunction can also call other SkyFunctions (e.g., `ARTIFACT` calls `FILE` in
 
 ## Evaluation model
 
-Each build target and its dependencies are represented as DAG nodes. A node can be in one of three states: ready, waiting, and done. Each node also has a counter tracking how many dependencies it needs to wait for, which determines state transitions. When all dependencies are resolved and the counter is 0, the node is considered as `ready`. Evaluator enqueues the `ready` nodes to the Executor, then the Executor runs the node's SkyFunction `.compute()` method.
+Each build target and its dependencies are represented as DAG nodes. A node can be in one of three states: ready, waiting, and done. Each node also has a counter tracking how many dependencies it needs to wait for, which determines state transitions. When all dependencies are resolved and the counter is 0, the node is considered as `ready`. Evaluator enqueues the `ready` nodes to the Executor, then the Executor runs the node's SkyFunction `.compute()` method. The state then transitions to `done` after the `.compute()` call returns.
 
 The interesting behavior in Skyframe is the "restart". On a first pass, a node might be evaluated but it may need to wait for its dependency to be evaluated first (e.g. symlink target needs to be resolved before the symlink itself). In this case, Skyframe sets the parent node state to `waiting`. When the dependency's state transitions to `done`, evaluator uses the reverse dependency edge to "signal" the parent which decrements the dependency counter. When the counter reaches 0, the parent node is enqueued again. Eventually, the parent node will "restart" and be evaluated again with complete dependencies available to run its own `.compute` step.
 
