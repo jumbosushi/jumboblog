@@ -182,7 +182,7 @@ When a file is updated, Bazel marks the changed leaf `FileState` node as `CHANGE
 
 ![Change pruning](/images/2026-05-06-bazel-skyframe/change_prune.png)
 
-[This blog](https://jmmv.dev/2020/12/google-no-clean-builds.html) post covers the file change detection more in depth.
+Note that this dirtiness state is tracked seprately from the evaluation state we saw earlier (e.g. `waiting`). If you're curious, [this blog post](https://jmmv.dev/2020/12/google-no-clean-builds.html) covers the file change detection more in depth.
 
 ## Conclusion
 
