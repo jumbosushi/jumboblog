@@ -4,7 +4,7 @@ draft = false
 title = 'Bazel Skyframe explained'
 +++
 
-<!-- https://excalidraw.com/#json=czXR8QkrZ0vmbNTyAwEVk,64eMiw8TmEqCg5bxziSfkw -->
+<!-- https://excalidraw.com/#json=_Sqq8GAFYKdgnXSGdhCvn,0kM9YnXrRGWFhX0leKCNlQ -->
 
 The term "Skyframe" comes up often as you dig deeper into Bazel internals. However, I found the available explanations confusing and found myself re-reading the [Skyframe documentation](https://bazel.build/reference/skyframe) multiple times. I've looked around the source code just enough to get the essence of it, so this post summarizes what I've learned.
 
