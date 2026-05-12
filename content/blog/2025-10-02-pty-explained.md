@@ -87,7 +87,7 @@ One of the first things it does is to call a `fork()` method from the same modul
 
 Next, the code manipulates the terminal configuration. These methods are from `termios` which is a C API to manipulate line discipline behavior. It saves the current configuration into a `mode` variable (which is used later). It then sets the pty follower that stdin is connected to into `raw` mode.
 
-When a pty follower is in `raw` mode, it disables most line discipline features, and it passes the data as is to the receiving end. This means that the line discipline will no longer process `CTRL-C` key press as `SIGINT` for this pty follower (shown in red).
+When a pty follower is in `raw` mode, it disables most line discipline features. It then passes the data as is to the receiving end. This means that the line discipline will no longer process `CTRL-C` key press as `SIGINT` for this pty follower (shown in red).
 
 ![python_pty_raw](/images/2025-10-02-pty-explained/python-pty-raw.png)
 
@@ -115,7 +115,7 @@ See ["A Brief Introduction to termios"](https://blog.nelhage.com/2009/12/a-brief
         _copy(master_fd, master_read, stdin_read)
 ```
 
-It then calls the `_copy()` method which is the most complicated part. The parent Python process calls `select()` on stdin (fd 0, nconnected to the original pty follower) and on the new pty leader fd. The parent process becomes responsible for passing data between the two. This part is complicated so let's examine both incoming and outgoing data.
+It then calls the `_copy()` method which is the most complicated part. The parent Python process calls `select()` on stdin (fd 0, nconnected to the original pty follower) and on the new pty leader fd. The parent process becomes responsible for passing data between the two. This part is complicated so let's examine incoming and outgoing data cases separately.
 
 ### Incoming
 
