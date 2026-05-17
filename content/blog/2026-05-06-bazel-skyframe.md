@@ -172,14 +172,14 @@ This evaluation model also explains why the action count in the CLI grows from 1
 
 ## Caching
 
-Because SkyKey is immutable and available globally in the graph, the same computation only executes once. In our sub-graph, the `FILE:demo/` node (which represents a directory) has two incoming edges. Once its computation is done, parent nodes reuse the same SkyValue result.
+Because SkyKey is immutable and available globally in the graph, the same computation only executes once. In the following sub-graph, the `FILE:demo/` node (which represents a directory) has two incoming edges. Once its computation is done, parent nodes reuse the same SkyValue result.
 
 ![Skyframe caching](/images/2026-05-06-bazel-skyframe/caching.png)
 
 As mentioned earlier, each of Bazel's execution phases has a corresponding SkyFunction:
 - Loading: [TargetPatternPhaseFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/TargetPatternPhaseFunction.java)
 - Analysis: [ConfiguredTargetFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/ConfiguredTargetFunction.java;l=122?q=ConfiguredTargetFunction&ss=bazel%2Fbazel)
-- Execution: [ActionExecutionFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/ActionExecutionFunction.java;l=137?q=ActionExecutionFunction&ss=bazel%2Fbazel) / [TargetCompletionFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/TargetCompletor.java;l=44?q=TargetCompletionFunction&ss=bazel%2Fbazel)
+- Execution: [TargetCompletionFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/TargetCompletor.java;l=44?q=TargetCompletionFunction&ss=bazel%2Fbazel)
 
 Each phase builds on top of the previous phase's Skyframe nodes. Because they share the same global graph, the cache is reused across phases as well (e.g. reading `hello.c` from the filesystem only once). Here's a simplified version of how each phase might create different Skyframe nodes:
 
