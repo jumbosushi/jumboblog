@@ -4,7 +4,7 @@ draft = false
 title = 'Bazel Skyframe explained'
 +++
 
-<!-- https://excalidraw.com/#json=_Sqq8GAFYKdgnXSGdhCvn,0kM9YnXrRGWFhX0leKCNlQ -->
+<!-- https://excalidraw.com/#json=DykBeGobIxJodm1_zVyFM,qa_ptIdhbzhK6iYNRqq1hw-->
 
 The term "Skyframe" comes up often as you dig deeper into Bazel internals. However, the available explanations are pretty confusing and I found myself re-reading the [Skyframe documentation](https://bazel.build/reference/skyframe) multiple times. I've looked around the source code just enough to get the essence of it, so this post summarizes what I've learned.
 
@@ -28,7 +28,7 @@ Each node in the DAG is evaluated step by step, and the result is cached. Bazel 
 
 **Parallel**
 
-It's common for even a simple target to depend on dozens of implicit dependencies. Building them sequentially is not an option for a build tool, so Skyframe evaluates independent nodes in parallel.
+Building targets sequentially is not an option for a build tool for large scale builds, so Skyframe evaluates independent nodes in parallel.
 
 Let's look at a hello world example to explore this further.
 
@@ -73,7 +73,7 @@ Skyframe DAG is available from the following command:
 bazel dump --skyframe deps
 ```
 
-Even in this hello world example, the dump file is >60K lines. To make it more manageable, we'll be using this subset of the graph that's related to reading local files starting with `ARTIFACT` to walk through how Skyframe might execute it:
+Even in this hello world example, the dump file is >60K lines. To make it more manageable, we'll be using this subset of the graph that's related to reading local files (starting with `FILE`) to walk through how Skyframe might execute it:
 
 ![Skyframe DAG subset](/images/2026-05-06-bazel-skyframe/dag-subset.png)
 
@@ -93,57 +93,52 @@ The simplest SkyFunction I found was [`FileStateFunction`](https://cs.opensource
 - SkyValue:  The file content of the given path at `demo/hello.c`
 - SkyFunction: `FileStateFunction`
 
-A SkyFunction can also call other SkyFunctions (e.g., `ARTIFACT` calls `FILE` in our subgraph). In fact, when we call `bazel build //...`, Bazel passes the `//...` pattern to [TargetPatternPhaseFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/TargetPatternPhaseFunction.java) during the loading phase, which is the starting point for recursively constructing the DAG.
+A SkyFunction can also call other SkyFunctions (e.g., `FILE` calls `FILE_STATE` in our subgraph). In fact, when we call `bazel build //...`, Bazel passes the `//...` pattern to [TargetPatternPhaseFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/TargetPatternPhaseFunction.java) during the loading phase, which is the starting point for recursively constructing the DAG.
 
 ## Evaluation model
 
-Each build target and its dependencies are represented as DAG nodes. A node can be in one of three states: `READY`, `WAITING`, and `DONE`. Each node also has a counter tracking how many dependencies it needs to wait for, which determines state transitions. When all dependencies are resolved and the counter is 0, the node is considered as `READY`. Evaluator enqueues the `READY` nodes to the Executor, then the Executor runs the node's SkyFunction `.compute()` method. The state then transitions to `DONE` after the `.compute()` call returns.
+Each build target and its dependencies are represented as DAG nodes. We'll walk through the evaluation in a simplified mental model.
 
-The interesting behavior in Skyframe is the "restart". On a first pass, a node might be evaluated but it may need to wait for its dependency to be evaluated first (e.g. symlink target needs to be resolved before the symlink itself). In this case, Skyframe sets the parent node state to `WAITING`. When the dependency's state transitions to `DONE`, evaluator uses the reverse dependency edge to "signal" the parent which decrements the dependency counter. When the counter reaches 0, the parent node is enqueued again. Eventually, the parent node will "restart" and be evaluated again with complete dependencies available to run its own `.compute` step.
+A node can be in one of three states: `READY`, `WAITING`, and `DONE`. Each node also has a counter tracking how many of its dependencies have completed, which determines state transitions. When the counter reaches the total number of dependencies, the node is considered as `READY`. Evaluator enqueues the `READY` nodes to the Executor, then the Executor runs the node's SkyFunction `.compute()` method. The state then transitions to `DONE` after the `.compute()` call returns.
+
+The interesting behavior in Skyframe is the "restart". On a first pass, a node might be evaluated but it may need to wait for its dependency to be evaluated first (e.g. symlink target needs to be resolved before the symlink itself). In this case, Skyframe sets the parent node state to `WAITING`. When the dependency's state transitions to `DONE`, evaluator uses the reverse dependency edge to "signal" the parent which increments the dependency counter. When the counter reaches the total number of dependencies, the parent node is enqueued again. Eventually, the parent node will "restart" and be evaluated again with complete dependencies available to run its own `.compute` step.
 
 This part is complicated! Let's try to examine this behavior in a simplified code.
 
 ## Simplified Python code
 
-I created a [skyframe.py gist](https://gist.github.com/jumbosushi/1e53dacfb765f2772f54e24db3909c3c) that emulates the Skyframe execution model in a simplified way. From the example above, let's examine how a sub-graph from the `"ARTIFACT"` node might be evaluated (in a single-threaded environment) using this code:
+I created a [skyframe.py gist](https://gist.github.com/jumbosushi/1e53dacfb765f2772f54e24db3909c3c) that emulates the Skyframe execution model in a simplified way. From the example above, let's examine how a sub-graph from the `FILE` node might be evaluated (in a single-threaded environment) using this code:
+
 ```txt
 ============================================================
-Evaluating ArtifactKey
+Evaluating FileKey
 ============================================================
-      enqueued ARTIFACT:hello.c
-[1] ARTIFACT:hello.c  [dequeued]
       enqueued FILE:demo/hello.c
-      -> ARTIFACT:hello.c is WAITING
-      waiting on 1 deps: [FILE:demo/hello.c]
-[2] FILE:demo/hello.c  [dequeued]
+[1] FILE:demo/hello.c  [dequeued]
       enqueued FILE:demo/
       enqueued FILE_STATE:demo/hello.c
       -> FILE:demo/hello.c is WAITING
       waiting on 2 deps: [FILE:demo/, FILE_STATE:demo/hello.c]
-[3] FILE:demo/  [dequeued]
+[2] FILE:demo/  [dequeued]
       enqueued FILE_STATE:demo/
       -> FILE:demo/ is WAITING
       waiting on 1 deps: [FILE_STATE:demo/]
-[4] FILE_STATE:demo/hello.c  [dequeued]
+[3] FILE_STATE:demo/hello.c  [dequeued]
       done: FileStateValue('demo/hello.c', content='bytes(demo/hello.c)')
-      signal FILE:demo/hello.c (1 remaining)
-[5] FILE_STATE:demo/  [dequeued]
+      signal FILE:demo/hello.c (1/2 done)
+[4] FILE_STATE:demo/  [dequeued]
       done: FileStateValue('demo/', content='bytes(demo/)')
-      signal FILE:demo/ (0 remaining)
+      signal FILE:demo/ (1/1 done)
       -> FILE:demo/ is READY (enqueued)
-[6] FILE:demo/  [dequeued]
+[5] FILE:demo/  [dequeued]
       done: FileValue('demo/')
-      signal FILE:demo/hello.c (0 remaining)
+      signal FILE:demo/hello.c (2/2 done)
       -> FILE:demo/hello.c is READY (enqueued)
-[7] FILE:demo/hello.c  [dequeued]
+[6] FILE:demo/hello.c  [dequeued]
       done: FileValue('demo/hello.c')
-      signal ARTIFACT:hello.c (0 remaining)
-      -> ARTIFACT:hello.c is READY (enqueued)
-[8] ARTIFACT:hello.c  [dequeued]
-      done: ArtifactValue('hello.c')
 ```
 
-Notice that on Step 8, `ARTIFACT:hello.c` restarted after its dependencies were available. The restart behavior is also visible in the Python Evaluator class:
+Notice that on Step 6, `File:demo/hello.c` restarted after its dependencies were available. The restart behavior is also visible in the Python Evaluator class:
 ```python
 # Code snippet from the python gist without the noise
 class Evaluator:
@@ -162,13 +157,14 @@ class Evaluator:
 
                 for parent in node.reverse_deps:
                     parent_node = self.graph.nodes[parent]
-                    parent_node.waiting_on -= 1
+                    parent_node.completed_deps += 1
 
-                    if parent_node.waiting_on == 0:
+                    if parent_node.completed_deps == parent_node.total_deps:
                         parent_node.state = Node.READY
                         self.queue.append(parent)
             else:
-                node.waiting_on = len(env._new_deps)
+                node.total_deps = len(env._new_deps)
+                node.completed_deps = 0
                 node.state = Node.WAITING
 ```
 
@@ -176,7 +172,7 @@ This evaluation model also explains why the action count in the CLI grows from 1
 
 ## Caching
 
-Because SkyKey is immutable and available globally in the graph, the same computation only executes once. In our sub-graph, `FILE:demo/` node has two incoming edges. Once its computation is done, parent nodes reuse the same SkyValue result.
+Because SkyKey is immutable and available globally in the graph, the same computation only executes once. In our sub-graph, `FILE:demo/` node (which represnets a directory) has two incoming edges. Once its computation is done, parent nodes reuse the same SkyValue result.
 
 ![Skyframe caching](/images/2026-05-06-bazel-skyframe/caching.png)
 
@@ -185,7 +181,7 @@ As mentioned earlier, each of Bazel's execution phases has a corresponding SkyFu
 - Analysis: [ConfiguredTargetFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/ConfiguredTargetFunction.java;l=122?q=ConfiguredTargetFunction&ss=bazel%2Fbazel)
 - Execution:  [ActionExecutionFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/ActionExecutionFunction.java;l=137?q=ActionExecutionFunction&ss=bazel%2Fbazel) / [TargetCompletionFunction](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/TargetCompletor.java;l=44?q=TargetCompletionFunction&ss=bazel%2Fbazel)
 
-Each phase builds on top of each other's Skyframe nodes. Because it shares the same global graph, the cache is reused across phases as well (e.g., reading `hello.c` from the filesystem only once). Here's a simplified version of how each phase creates different Skyframe nodes:
+Each phase builds on top of each other's Skyframe nodes. Because it shares the same global graph, the cache is reused across phases as well (e.g., reading `hello.c` from the filesystem only once). Here's a simplified version of how each phase might create different Skyframe nodes:
 
 ![Skyframe phases](/images/2026-05-06-bazel-skyframe/build-phases.png)
 
@@ -193,7 +189,7 @@ Each phase builds on top of each other's Skyframe nodes. Because it shares the s
 
 The Skyframe evaluation cache is also reused beyond a single build! Bazel persists the Skyframe state in its [server](https://bazel.build/run/client-server) which is used across different client build invocations. It then sets up a file system watcher for local filesystems (using `inotify` on linux and `fsevents` on MacOS). 
 
-When a file is updated, Bazel marks the changed leaf `FileState` node as `CHANGED`. The state change is propagated up the reverse dependencies, but they are instead marked as `DIRTY`. Skyframe uses two states in order to implement "change pruning". Even if the file itself was changed, if the computed output is identical then it can be reused as it is. During the bottom-up re-evaluation, the `CHANGED` node is evaluated first. If the output is identical (e.g. same SHA) then re-evaluation exits early at reverse deps nodes marked as `DIRTY` and skip `.compute()`.
+When a file is updated, Bazel marks the changed leaf `FileState` node as `CHANGED`. The state change is propagated up the reverse dependencies, but they are instead marked as `DIRTY`. Skyframe uses two states in order to implement "change pruning". Even if the file itself was changed, if the computed output is identical then it can be reused as it is. During the bottom-up re-evaluation, the `CHANGED` node is evaluated first. If the output is identical (e.g. same SHA), re-evaluation exits early at nodes marked `DIRTY` and skips .compute().
 
 ![Change pruning](/images/2026-05-06-bazel-skyframe/change_prune.png)
 
@@ -211,7 +207,7 @@ INFO: 14 processes: 10 internal, 4 darwin-sandbox.
 INFO: Build completed successfully, 14 total actions
 ```
 
-Notice that it ran four compile / link subcommands. I then update the C file to include a comment that will change the file node's state to `CHANGED`:
+Notice that it ran four compiler & linker subcommands. Next, I'll update the C file to include a comment that will change the file node's state to `CHANGED`:
 ```diff
    #include <stdio.h>
    #include "lib.h"
@@ -223,7 +219,7 @@ Notice that it ran four compile / link subcommands. I then update the C file to 
    }
 ```
 
-When I build again, the change pruning kicks in. Only the action to compile `hello.c` runs, and once Skyframe verifies that the build output is the same it uses the result from the cache:
+When I build again, the change pruning kicks in. The `cc_binary` action to compile `hello.c` runs, and produces the same binary since C strips comments from the compiled output. Once Skyframe verifies that the build output is the same, it reuses the build output from the cache:
 
 ```txt
 $ bazel build --subcommands //...
@@ -234,7 +230,6 @@ INFO: Elapsed time: 0.159s, Critical Path: 0.07s
 INFO: 2 processes: 1 action cache hit, 1 internal, 1 darwin-sandbox.
 INFO: Build completed successfully, 2 total actions
 ```
-
 
 Note that this dirtiness state is tracked seprately from the evaluation state we saw earlier (e.g. `WAITING`). If you're curious, [this blog post](https://jmmv.dev/2020/12/google-no-clean-builds.html) covers the file change detection more in depth.
 
