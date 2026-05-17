@@ -189,7 +189,7 @@ Each phase builds on top of the previous phase's Skyframe nodes. Because they sh
 
 The Skyframe evaluation cache is also reused beyond a single build! Bazel persists the Skyframe state in its [server](https://bazel.build/run/client-server), which is used across different client build invocations. It then sets up a file system watcher for local filesystems (using `inotify` on Linux and `fsevents` on macOS).
 
-When a file is updated, Bazel marks the changed leaf `FileState` node as `CHANGED`. The state change is propagated up the reverse dependencies, but they are instead marked as `DIRTY`. Skyframe uses two states in order to implement "change pruning". Even if the file itself was changed, if the computed output is identical, then it can be reused as-is. During the bottom-up re-evaluation, the `CHANGED` node is evaluated first. If the output is identical (e.g. same SHA), re-evaluation exits early at nodes marked `DIRTY` and skips `.compute()`.
+When a file is updated, Bazel marks the changed leaf `FileState` node as `CHANGED`. The state change is propagated up the reverse dependencies, but they are instead marked as `DIRTY`. Skyframe uses two states in order to implement "change pruning". Even if the file itself was changed, if the computed output is identical then it can be reused as-is. During the bottom-up re-evaluation, the `CHANGED` node is evaluated first. If the output is identical (e.g. same SHA), re-evaluation exits early at nodes marked `DIRTY` and skips `.compute()`.
 
 ![Change pruning](/images/2026-05-06-bazel-skyframe/change_prune.png)
 
