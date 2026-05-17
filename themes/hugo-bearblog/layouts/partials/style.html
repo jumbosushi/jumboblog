@@ -147,8 +147,9 @@
         color: var(--visited-color);
     }
 
-    /* Somehow code coloring not working within ul, so adding it here */
-    ul li code {
+    /* Somehow code coloring not working within ul, so adding it here.
+       Use `>` so code inside <a> (e.g. [`text`](link)) keeps the link color. */
+    ul li > code {
         color: var(--heading-color);
     }
 
