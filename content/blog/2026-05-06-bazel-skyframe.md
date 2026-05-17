@@ -89,7 +89,7 @@ The way I understand it, Skyframe execution roughly consists of three components
 Each node in the graph wraps a SkyValue and is referenced by a SkyKey. The Evaluator uses the SkyKey's associated pure function (called a SkyFunction) to build the SkyValue. Every type of computation done by Skyframe is implemented as a SkyFunction (there are [87 listed](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/SkyFunctions.java;l=120;drc=8584d864876062a15dd11423717b0412f3d1fd8d?q=ARTIFACT_NESTED_SET&sq=&ss=bazel%2Fbazel) as of v9.0.0).
 
 The simplest SkyFunction I found was [`FileStateFunction`](https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/skyframe/FileStateFunction.java;l=35?q=FileStateFunction&ss=bazel%2Fbazel), which essentially returns file content. To map to the definitions:
-- SkyKey: `"FILE_STATE{demo/hello.c}"` (a pair of type & name)
+- SkyKey: `"FILE_STATE:[demo/]/[hello.c]"` (a pair of type & name)
 - SkyValue: The file content of the given path at `demo/hello.c`
 - SkyFunction: `FileStateFunction`
 
